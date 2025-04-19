@@ -1,16 +1,13 @@
 const { default: chalk } = require('chalk')
+const { timeEnd } = require('console')
 const fs = require('fs')
-
-const getNotes = () => {
-    return "Your notes..."
-}
+const { title } = require('process')
 
 const addNote = (title, body) => {
     const notes = loadNotes() //object lylia loadnotes sy 
+    const duplicateNote = notes.find(note => note.title === title);
 
-    const duplicateNotes = notes.filter(note => note.title === title);
-
-    if(duplicateNotes.length === 0)
+    if(!duplicateNote)
     {
         notes.push({ // push basically array k andr aik or note ka object add kr rha h
             title: title,
@@ -23,7 +20,7 @@ const addNote = (title, body) => {
         console.log(chalk.bgRed('Note title taken!'))
     }
 
-    saveNotes(notes) //Save kia file main jo k maqsad h hamara add krna note
+    saveNotes(notes) //Save kia file main updated array ko jo k maqsad h hamara add krna note
 }
 
 const saveNotes = (notes) => {
@@ -61,14 +58,28 @@ const listNotes = () =>
 {
     const Notes = loadNotes()
     console.log(chalk.bgBlackBright('Your Notes'))
-    Notes.array.forEach(element => {
-        console.log(element.title)
-    });
+    Notes.forEach((element) => console.log(element.title));
+}
+
+const readNote = (title) =>
+{
+    const notes = loadNotes()
+    const nodetoPrint = notes.find((note) => note.title === title)
+    
+    if(nodetoPrint)
+    {
+        console.log(chalk.bgGreen(nodetoPrint.title))
+        console.log(nodetoPrint.body)
+    }
+    else
+    {
+        console.log(chalk.bgRed('No node found!'))
+    }
 }
 
 module.exports = {
-    getNotes: getNotes,
     addNote: addNote,
     removeNote: removeNote,
-    listNotes: listNotes
+    listNotes: listNotes,
+    readNote: readNote
 }
