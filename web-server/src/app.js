@@ -1,6 +1,9 @@
 const path = require('path')
 const express = require('express')
 const hbs = require('hbs')
+const { error } = require('console')
+const geocode = require('./utlils/geocode')
+const forecast = require('./utlils/forecast')
 
 const app = express()
 
@@ -35,7 +38,7 @@ app.get('/About', (req, res) => {
 
 
 
-app.get('/Help', (req,res) =>{
+app.get('/Help', (req, res) => {
     res.render('help', {
         helpmessage: 'This is the help message.',
         title: 'Help',
@@ -44,10 +47,40 @@ app.get('/Help', (req,res) =>{
 })
 
 
-app.get('/Weather', (req, res) => {
+app.get('/weather', (req, res) => {
+    if (!req.query.address) {
+        return res.send({
+            error: 'You must provide an address to search.'
+        })
+    }
+    const address = req.query.address
+    geocode(address, (error, { location, latitude, longitude } = {}) => {
+        if (error) {
+            return res.send({ error })
+        }
+
+        forecast(latitude, longitude, (error, forecastdata) => {
+            if (error) {
+                return res.send({ error })
+            }
+            res.send(
+                {
+                    location,
+                    forecast: forecastdata,
+                    address: req.query.address
+                })
+        })
+    })
+})
+
+app.get('/products', (req, res) => {
+    if (!req.query.search) {
+        return res.send({
+            error: 'You must provide a search term'
+        })
+    }
     res.send({
-        forecast: 'It is hot',
-        location: 'Lahore'
+        products: []
     })
 })
 
@@ -55,14 +88,14 @@ app.get('/Weather', (req, res) => {
 //  dydia jo uper match ni hua. Ye har us route ko match krta h jo match nahi hota uper. isliye agr help/* ko neechy rkhein 
 // to wo help tk ay ga hi ni wo phly hi match kr jaye ga * k sath or chala jaye ga
 
-app.get('/help/*', (req,res) => {
-    res.render('404',{
+app.get('/help/*', (req, res) => {
+    res.render('404', {
         error: 'Help article not found',
         name: 'Saif Rehman'
     })
 })
 
-app.get('*', (req, res) =>{
+app.get('*', (req, res) => {
     res.render('404', {
         error: 'Page not Found',
         name: 'Saif Rehman'
